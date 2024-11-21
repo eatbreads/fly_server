@@ -45,4 +45,5 @@ Thumbs.db
 .vcpkg/
 
 # 用户自定义内容
+main
 # 添加你不希望上传到 Git 的特定文件或目录
