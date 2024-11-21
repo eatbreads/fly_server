@@ -1,0 +1,48 @@
+# 编译生成的文件
+*.o
+*.obj
+*.so
+*.dll
+*.dylib
+*.exe
+*.out
+*.a
+*.lib
+
+# CMake 生成的文件和目录
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+build/
+
+# IDE 相关文件
+.idea/
+.vscode/
+*.code-workspace
+
+# 临时文件和日志
+*.log
+*.tmp
+*.swp
+*.swo
+*.bak
+*.old
+*.~*
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 覆盖率和调试相关
+*.gcda
+*.gcno
+*.gcov
+*.profraw
+*.profdata
+
+# 包管理工具生成的文件
+.vcpkg/
+
+# 用户自定义内容
+# 添加你不希望上传到 Git 的特定文件或目录
