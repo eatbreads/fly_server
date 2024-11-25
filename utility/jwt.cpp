@@ -1,4 +1,4 @@
-#include "utility/jwt.h"
+#include "jwt.h"
 #include <openssl/hmac.h>
 #include <openssl/bio.h>
 #include <openssl/buffer.h>
@@ -116,10 +116,11 @@ std::string JWT::base64UrlDecode(const std::string &input) const {
 }
 
 
-std::string JWT::hmacSha256(const std::string &key, const std::string &data) const{
+std::string JWT::hmacSha256(const std::string &key, const std::string &data) const {
     unsigned char result[EVP_MAX_MD_SIZE];
     unsigned int len = 0;
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L  // OpenSSL 1.1.0 之前的版本
     HMAC_CTX ctx;
     HMAC_CTX_init(&ctx);
 
@@ -128,6 +129,22 @@ std::string JWT::hmacSha256(const std::string &key, const std::string &data) con
     HMAC_Final(&ctx, result, &len);
 
     HMAC_CTX_cleanup(&ctx);
+
+#else  // OpenSSL 1.1.0 及之后的版本
+    HMAC_CTX *ctx = HMAC_CTX_new();
+    if (!ctx) {
+        throw std::runtime_error("Failed to create HMAC context");
+    }
+
+    if (HMAC_Init_ex(ctx, key.c_str(), key.length(), EVP_sha256(), NULL) != 1 ||
+        HMAC_Update(ctx, (unsigned char *)data.c_str(), data.length()) != 1 ||
+        HMAC_Final(ctx, result, &len) != 1) {
+        HMAC_CTX_free(ctx);
+        throw std::runtime_error("HMAC computation failed");
+    }
+
+    HMAC_CTX_free(ctx);
+#endif
 
     return std::string(reinterpret_cast<char *>(result), len);
 }
@@ -160,4 +177,6 @@ long JWT::extractField(const std::string &payload, const std::string &field) con
         throw;
     }
 }
+
+
 

@@ -12,7 +12,7 @@
  */
 struct DatabaseOption 
 {
-    std::string host = "192.168.171.100";//数据库ip地址
+    std::string host = "127.0.0.1";//数据库ip地址
     int port = 3306;//端口号
     std::string username = "root";//用户名
     std::string password = "sjh123456";//数据库密码

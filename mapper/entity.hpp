@@ -13,7 +13,7 @@
 struct Class {
     int classId = 0;
     std::string className;
-    int schoolId = 0;
+    int schoolId = 0; 
 
     friend std::ostream &operator<<(std::ostream &os, const Class &aClass) {
         os << "classId: " << aClass.classId << " className: " << aClass.className << " schoolId: " << aClass.schoolId;
@@ -129,6 +129,111 @@ ResultMap(
     PropertyMap(idNumber, "id_number"),            // 映射到 id_number 字段  
     PropertyMap(userLevel, "user_level")           // 映射到 user_level 字段  
 );  
+struct Flight {
+    int id = 0;                              // 主键 ID
+    std::string departure;                   // 出发地
+    std::time_t departureTime;               // 出发时间
+    std::string destination;                 // 目的地
+    std::time_t arrivalTime;                 // 预计到达时间
+    std::string flightNumber;                // 航班号
+    int firstClassSeats = 0;                 // 头等舱余量
+    int businessClassSeats = 0;              // 商务舱余量
+    int economyClassSeats = 0;               // 经济舱余量
+    int firstClassPrice = 0;            // 头等舱票价
+    int businessClassPrice = 0;         // 商务舱票价
+    int economyClassPrice = 0;          // 经济舱票价
+    std::string departureAirport;            // 出发机场名
+    std::string arrivalAirport;              // 到达机场名
+    std::string boardingGate;                // 进站口
+    std::string aircraftModel;               // 飞机型号
+    std::string airlineCompany;              // 航空公司
+    int hasMeal = 0;                    // 有无餐食
+    int luggageSizeLimit = 0;           // 行李大小限制
+    int isInternational = 0;            // 是否国际航班
+
+    friend std::ostream& operator<<(std::ostream& os, const Flight& flight) {
+        os << "id: " << flight.id
+           << " departure: " << flight.departure
+           << " departureTime: " << flight.departureTime
+           << " destination: " << flight.destination
+           << " arrivalTime: " << flight.arrivalTime
+           << " flightNumber: " << flight.flightNumber
+           << " firstClassSeats: " << flight.firstClassSeats
+           << " businessClassSeats: " << flight.businessClassSeats
+           << " economyClassSeats: " << flight.economyClassSeats
+           << " firstClassPrice: " << flight.firstClassPrice
+           << " businessClassPrice: " << flight.businessClassPrice
+           << " economyClassPrice: " << flight.economyClassPrice
+           << " departureAirport: " << flight.departureAirport
+           << " arrivalAirport: " << flight.arrivalAirport
+           << " boardingGate: " << flight.boardingGate
+           << " aircraftModel: " << flight.aircraftModel
+           << " airlineCompany: " << flight.airlineCompany
+           << " hasMeal: " << (flight.hasMeal ? "Yes" : "No")
+           << " luggageSizeLimit: " << flight.luggageSizeLimit
+           << " isInternational: " << (flight.isInternational ? "Yes" : "No");
+        return os;
+    }
+};
+
+ResultMap(
+    EntityMap(Flight, "flights"),
+    PropertyMap(id, ColumnType::Id),
+    PropertyMap(departure),
+    PropertyMap(departureTime, "departure_time"),
+    PropertyMap(destination),
+    PropertyMap(arrivalTime, "arrival_time"),
+    PropertyMap(flightNumber, "flight_number"),
+    PropertyMap(firstClassSeats, "first_class_seats"),
+    PropertyMap(businessClassSeats, "business_class_seats"),
+    PropertyMap(economyClassSeats, "economy_class_seats"),
+    PropertyMap(firstClassPrice, "first_class_price"),
+    PropertyMap(businessClassPrice, "business_class_price"),
+    PropertyMap(economyClassPrice, "economy_class_price"),
+    PropertyMap(departureAirport, "departure_airport"),
+    PropertyMap(arrivalAirport, "arrival_airport"),
+    PropertyMap(boardingGate, "boarding_gate"),
+    PropertyMap(aircraftModel, "aircraft_model"),
+    PropertyMap(airlineCompany, "airline_company"),
+    PropertyMap(hasMeal, "has_meal"),
+    PropertyMap(luggageSizeLimit, "luggage_size_limit"),
+    PropertyMap(isInternational, "is_international")
+);
+struct Order {
+    int id = 0;                              // 主键 ID
+    int userId = 0;                          // 用户 ID
+    int flightId = 0;                        // 航班信息 ID
+    std::string seatType;                    // 座位类别
+    int price = 0;                           // 票价
+    std::string orderStatus;                 // 订单状态
+    std::time_t paymentTime = {};            // 支付时间
+    std::time_t refundTime = {};             // 退款时间
+
+    friend std::ostream& operator<<(std::ostream& os, const Order& order) {
+        os << "id: " << order.id
+           << " userId: " << order.userId
+           << " flightId: " << order.flightId
+           << " seatType: " << order.seatType
+           << " price: " << order.price
+           << " orderStatus: " << order.orderStatus
+           << " paymentTime: " << order.paymentTime
+           << " refundTime: " << order.refundTime;
+        return os;
+    }
+};
+
+ResultMap(
+    EntityMap(Order, "orders"),
+    PropertyMap(id, ColumnType::Id),
+    PropertyMap(userId, "user_id"),          // 映射到 user_id 字段
+    PropertyMap(flightId, "flight_id"),      // 映射到 flight_id 字段
+    PropertyMap(seatType, "seat_type"),
+    PropertyMap(price),
+    PropertyMap(orderStatus, "order_status"),
+    PropertyMap(paymentTime, "payment_time"),
+    PropertyMap(refundTime, "refund_time")
+)
+
 
 
 #endif //MAPPER_TEST_HPP

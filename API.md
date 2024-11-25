@@ -1,4 +1,3 @@
-以下是基于你提供的表结构设计的 API 文档，每个接口的状态码均返回 `200`，响应报文包含 `"code"`, `"message"`, 和 `"data"` 字段，统一接口规范如下。
 
 ---
 
@@ -37,7 +36,7 @@
 失败:
 ```json
 {
-  "code": 200,
+  "code": 500,
   "message": "Registration failed: Email already exists",
   "data": null
 }
@@ -73,7 +72,7 @@
 失败:
 ```json
 {
-  "code": 200,
+  "code": 500,
   "message": "Login failed: Invalid email or password",
   "data": null
 }
@@ -83,17 +82,21 @@
 
 ### **2. 航班管理接口**
 
-#### **2.1 查询航班信息**
-**描述**: 根据条件查询航班信息。  
+### 修改后的查询航班信息接口设计
+
+**描述**: 根据出发地和到达地查询所有符合条件的航班，不包含已经过期的航班。  
 **URL**: `/api/flights/search`  
-**方法**: `GET`  
-**请求参数** (Query 参数):
-- `departure` (可选): 出发地
-- `destination` (可选): 目的地
-- `departureTime` (可选): 出发时间范围（时间戳，秒级）
+**方法**: `POST`  
+**请求体**:
+```json
+{
+  "departure": "Beijing",
+  "destination": "Shanghai"
+}
+```
 
 **响应**:  
-成功:
+**成功**:
 ```json
 {
   "code": 200,
@@ -111,14 +114,28 @@
       "firstClassPrice": 1000.0,
       "economyClassPrice": 500.0,
       "airlineCompany": "China Eastern Airlines"
+    },
+    {
+      "id": 102,
+      "flightNumber": "CA5678",
+      "departure": "Beijing",
+      "destination": "Shanghai",
+      "departureTime": 1713345678,
+      "arrivalTime": 1713355678,
+      "firstClassSeats": 8,
+      "economyClassSeats": 60,
+      "firstClassPrice": 1200.0,
+      "economyClassPrice": 600.0,
+      "airlineCompany": "Air China"
     }
   ]
 }
 ```
-失败:
+
+**失败**:
 ```json
 {
-  "code": 200,
+  "code": 500,
   "message": "Search failed: No flights found",
   "data": null
 }
@@ -161,7 +178,7 @@
 失败:
 ```json
 {
-  "code": 200,
+  "code": 500,
   "message": "Flight creation failed: Duplicate flight number",
   "data": null
 }
@@ -199,7 +216,7 @@
 失败:
 ```json
 {
-  "code": 200,
+  "code": 500,
   "message": "Order creation failed: Flight fully booked",
   "data": null
 }
@@ -210,10 +227,13 @@
 #### **3.2 查询订单**
 **描述**: 根据用户 ID 查询订单信息。  
 **URL**: `/api/orders/search`  
-**方法**: `GET`  
-**请求参数** (Query 参数):
-- `userId`: 用户 ID  
-
+**方法**: `POST`  
+**请求体**:
+```json
+{
+  "userId": 1
+}
+```
 **响应**:  
 成功:
 ```json
@@ -235,7 +255,7 @@
 失败:
 ```json
 {
-  "code": 200,
+  "code": 500,
   "message": "Query failed: No orders found",
   "data": null
 }
@@ -246,7 +266,7 @@
 #### **3.3 更新订单状态**
 **描述**: 更新订单状态（如支付、退款）。  
 **URL**: `/api/orders/update`  
-**方法**: `PUT`  
+**方法**: `POST`  
 **请求体**:
 ```json
 {
@@ -270,7 +290,7 @@
 失败:
 ```json
 {
-  "code": 200,
+  "code": 500,
   "message": "Order update failed: Invalid order ID",
   "data": null
 }
@@ -279,8 +299,9 @@
 ---
 
 ### 统一说明
-- **状态码**: 所有接口均返回 HTTP 状态码 `200`。
-- **响应报文格式**:
-  - `code`: 状态码，固定为 `200`。
-  - `message`: 描述信息，指明成功或失败的原因。
-  - `data`: 包含具体返回数据，失败时为 `null`。
+- **HTTP 状态码**: 固定返回 `200`。
+- **请求参数**: 均通过请求体传递。
+- **响应报文字段**:
+  - `"code"`: 业务状态码，`200` 表示成功，`500` 表示失败。
+  - `"message"`: 描述信息。
+  - `"data"`: 成功时返回具体数据，失败时为 `null`。
