@@ -15,6 +15,9 @@ RUN apt-get update && apt-get install -y \
     libhiredis-dev \
     libpthread-stubs0-dev \
     mysql-server \
+    python3 \
+    python3-pip \
+    python3-dev \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
