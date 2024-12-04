@@ -11,14 +11,11 @@ using namespace httplib;
 using namespace std;
 using json = nlohmann::json;
 
-// 查询航班信息接口
 void handle_flight_search(const Request& req, Response& res) {
     json responseJson;
     try {
         // 解析 JSON 请求体
-
         json requestJson = json::parse(req.body);
-         
 
         // 检查必要字段：departure 和 destination
         if (!requestJson.contains("departure") || !requestJson.contains("destination")) {
@@ -30,26 +27,20 @@ void handle_flight_search(const Request& req, Response& res) {
             res.set_content(responseJson.dump(), "application/json");
             return;
         }
+
         std::string departure = requestJson["departure"];
         std::string destination = requestJson["destination"];
 
-        // 获取当前时间，过滤过期航班
-        std::time_t currentTime = std::time(nullptr);
 
         // 使用 ORM 查询航班信息
-        Mapper<Flight> flightMapper;
+        Mapper<Flight> flightMapper; 
 
         Example<Flight> example;
-
         auto criteria = example.createCriteria();
 
-
         criteria->andEqualTo(&Flight::departure, departure);
-
         criteria->andEqualTo(&Flight::destination, destination);
-
-        //criteria->andGreaterThanOrEqualTo(&Flight::departureTime, currentTime); // 过滤过期航班
-        criteria->andGreaterThan(&Flight::departureTime, currentTime); // 过滤过期航班
+        //criteria->andGreaterThan(&Flight::departureTime, currentTime); // 过滤过期航班
 
         auto flights = flightMapper.selectByExample(example);
 
@@ -80,7 +71,8 @@ void handle_flight_search(const Request& req, Response& res) {
                 {"economyClassPrice", flight.economyClassPrice},
                 {"airlineCompany", flight.airlineCompany}
             });
-        
+        }
+
         responseJson = {
             {"code", 200},
             {"message", "Search successful"},
@@ -88,23 +80,30 @@ void handle_flight_search(const Request& req, Response& res) {
         };
         res.set_content(responseJson.dump(), "application/json");
 
-    } }catch (const json::exception& e) {
+    } catch (const json::exception& e) {
         responseJson = {
             {"code", 500},
             {"message", "Search failed: Invalid JSON format"},
             {"data", nullptr}
         };
         res.set_content(responseJson.dump(), "application/json");
-    } catch (...) {
+    } catch (const std::exception& e) {
         responseJson = {
             {"code", 500},
-            // {"message", "Search failed: Internal server error"},
-            {"message", i},
+            {"message", std::string("Search failed: ") + e.what()},
+            {"data", nullptr}
+        };
+        res.set_content(responseJson.dump(), "application/json");
+    } catch (...) {
+        responseJson = { 
+            {"code", 500},
+            {"message", "Search failed: Internal server error"},
             {"data", nullptr}
         };
         res.set_content(responseJson.dump(), "application/json");
     }
 }
+
 
 
 // 创建航班信息接口
@@ -180,6 +179,133 @@ void handle_flight_create(const Request& req, Response& res) {
     } catch (const json::exception& e) {
         res.status = 200;
         responseJson = {{"code", 500}, {"message", "Flight creation failed: Invalid JSON format"}, {"data", nullptr}};
+        res.set_content(responseJson.dump(), "application/json");
+    }
+}
+
+// 修改航班信息接口
+void handle_flight_update(const Request& req, Response& res) {
+    json responseJson;
+
+    try {
+        // 解析 JSON 请求体
+        json requestJson = json::parse(req.body);
+
+        // 检查是否包含航班ID
+        if (!requestJson.contains("id")) {
+            res.status = 500;
+            responseJson = {{"code", 500}, {"message", "Flight update failed: Missing flight ID"}, {"data", nullptr}};
+            res.set_content(responseJson.dump(), "application/json");
+            return;
+        }
+
+        int flightId = requestJson["id"];
+        
+        // 使用 ORM 查询该航班是否存在
+        Mapper<Flight> flightMapper;
+        Example<Flight> example;
+        auto criteria = example.createCriteria();
+        criteria->andEqualTo(&Flight::id, flightId);
+        auto flights = flightMapper.selectByExample(example);
+
+        if (flights.empty()) {
+            res.status = 500;
+            responseJson = {{"code", 500}, {"message", "Flight update failed: Flight not found"}, {"data", nullptr}};
+            res.set_content(responseJson.dump(), "application/json");
+            return;
+        }
+
+        // 找到航班并更新字段
+        Flight& flight = flights.front();
+        
+        if (requestJson.contains("departure")) flight.departure = requestJson["departure"];
+        if (requestJson.contains("departureTime")) flight.departureTime = requestJson["departureTime"];
+        if (requestJson.contains("destination")) flight.destination = requestJson["destination"];
+        if (requestJson.contains("arrivalTime")) flight.arrivalTime = requestJson["arrivalTime"];
+        if (requestJson.contains("flightNumber")) flight.flightNumber = requestJson["flightNumber"];
+        if (requestJson.contains("firstClassSeats")) flight.firstClassSeats = requestJson["firstClassSeats"];
+        if (requestJson.contains("businessClassSeats")) flight.businessClassSeats = requestJson["businessClassSeats"];
+        if (requestJson.contains("economyClassSeats")) flight.economyClassSeats = requestJson["economyClassSeats"];
+        if (requestJson.contains("firstClassPrice")) flight.firstClassPrice = requestJson["firstClassPrice"];
+        if (requestJson.contains("businessClassPrice")) flight.businessClassPrice = requestJson["businessClassPrice"];
+        if (requestJson.contains("economyClassPrice")) flight.economyClassPrice = requestJson["economyClassPrice"];
+        if (requestJson.contains("departureAirport")) flight.departureAirport = requestJson["departureAirport"];
+        if (requestJson.contains("arrivalAirport")) flight.arrivalAirport = requestJson["arrivalAirport"];
+        if (requestJson.contains("boardingGate")) flight.boardingGate = requestJson["boardingGate"];
+        if (requestJson.contains("aircraftModel")) flight.aircraftModel = requestJson["aircraftModel"];
+        if (requestJson.contains("airlineCompany")) flight.airlineCompany = requestJson["airlineCompany"];
+        if (requestJson.contains("hasMeal")) flight.hasMeal = requestJson["hasMeal"];
+        if (requestJson.contains("luggageSizeLimit")) flight.luggageSizeLimit = requestJson["luggageSizeLimit"];
+        if (requestJson.contains("isInternational")) flight.isInternational = requestJson["isInternational"];
+
+        // 更新数据库中的航班信息
+        int updatedRows = flightMapper.updateByPrimaryKey(flight);
+        
+        if (updatedRows > 0) {
+            res.status = 200;
+            responseJson = {{"code", 200}, {"message", "Flight updated successfully"}, {"data", {{"id", flightId}}}};
+        } else {
+            res.status = 500;
+            responseJson = {{"code", 500}, {"message", "Flight update failed: Database error"}, {"data", nullptr}};
+        }
+
+        res.set_content(responseJson.dump(), "application/json");
+
+    } catch (const json::exception& e) {
+        res.status = 500;
+        responseJson = {{"code", 500}, {"message", "Flight update failed: Invalid JSON format"}, {"data", nullptr}};
+        res.set_content(responseJson.dump(), "application/json");
+    }
+}
+
+// 删除航班信息接口
+void handle_flight_delete(const Request& req, Response& res) {
+    json responseJson;
+
+    try {
+        // 解析 JSON 请求体
+        json requestJson = json::parse(req.body);
+
+        // 检查是否包含航班ID
+        if (!requestJson.contains("id")) {
+            res.status = 500;
+            responseJson = {{"code", 500}, {"message", "Flight deletion failed: Missing flight ID"}, {"data", nullptr}};
+            res.set_content(responseJson.dump(), "application/json");
+            return;
+        }
+
+        int flightId = requestJson["id"];
+        
+        // 使用 ORM 查询该航班是否存在
+        Mapper<Flight> flightMapper;
+        Example<Flight> example;
+        auto criteria = example.createCriteria();
+        criteria->andEqualTo(&Flight::id, flightId);
+        auto flights = flightMapper.selectByExample(example);
+
+        if (flights.empty()) {
+            res.status = 500;
+            responseJson = {{"code", 500}, {"message", "Flight deletion failed: Flight not found"}, {"data", nullptr}};
+            res.set_content(responseJson.dump(), "application/json");
+            return;
+        }
+
+        // 删除航班
+        int deletedRows = flightMapper.deleteByPrimaryKey(flightId);
+        
+        if (deletedRows > 0) {
+            res.status = 200;
+            responseJson = {{"code", 200}, {"message", "Flight deleted successfully"}, {"data", {{"id", flightId}}}};
+        } else {
+            res.status = 500;
+            responseJson = {{"code", 500}, {"message", "Flight deletion failed: Database error"}, {"data", nullptr}};
+        }
+
+        res.set_content(responseJson.dump(), "application/json");
+
+    } catch (const json::exception& e) {
+        res.status = 500;
+        responseJson = {{"code", 500}, {"message", "Flight deletion failed: Invalid JSON format"}, {"data", nullptr}};
         res.set_content(responseJson.dump(), "application/json");
     }
 }

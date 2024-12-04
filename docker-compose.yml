@@ -1,27 +1,19 @@
-version: '3.8'
 
 services:
-  mysql:
-    image: mymysql:v1.0.0
-    container_name: mymysql
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: sjh123456
-      MYSQL_DATABASE: eat
-    ports:
-      - "3306:3306"
-
   web:
     image: eatbreads/mywebproject:latest
-    container_name: myweb
-    restart: always
-    depends_on:
-      - mysql
     ports:
-      - "8080:8080"
-    environment:
-      DATABASE_HOST: mysql
-      DATABASE_PORT: 3306
-      DATABASE_USER: root
-      DATABASE_PASSWORD: sjh123456
-      DATABASE_NAME: eat
+      - "8088:8080"  # 将宿主机的 8080 端口映射到容器的 8080 端口
+    networks:
+      - mynetwork  # 使用自定义网络
+
+  mymysql:
+    image: eatbreads/mymysql:latest
+    ports:
+      - "3306:3306"  # 将宿主机的 3306 端口映射到容器的 3306 端口
+    networks:
+      - mynetwork  # 使用自定义网络
+
+networks:
+  mynetwork:
+    driver: bridge  # 使用 bridge 网络模式

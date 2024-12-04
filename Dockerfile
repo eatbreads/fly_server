@@ -1,3 +1,4 @@
+
 # 使用一个支持 C++ 的基础镜像
 FROM ubuntu:22.04
 
@@ -5,7 +6,7 @@ FROM ubuntu:22.04
 ENV TZ=Asia/Shanghai
 RUN ln -sf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-# 更新系统并安装最新版本的 OpenSSL 和其他依赖
+# 更新系统并安装 MySQL 以及其他依赖
 RUN apt-get update && apt-get install -y \
     build-essential \
     cmake \
@@ -13,27 +14,36 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     libhiredis-dev \
     libpthread-stubs0-dev \
+    mysql-server \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
+# 设置 MySQL 密码和其他配置
+ENV MYSQL_ROOT_PASSWORD=sjh123456
+
+# 创建数据库初始化目录并复制 SQL 文件
+COPY init.sql /docker-entrypoint-initdb.d/
+# 将本地的 mysqld.cnf 文件复制到容器的 MySQL 配置目录
+COPY mysqld.cnf /etc/mysql/mysql.conf.d/mysqld.cnf
 
 # 将当前目录下的代码复制到镜像中
 WORKDIR /app
 COPY . /app
 
-
-# # 添加调试步骤：查找 MySQL 库和头文件路径
-# RUN echo "Searching for libmysqlclient.so:" && find /usr -name "libmysqlclient.so" || echo "MySQL client library not found"
-# RUN echo "Searching for mysql.h:" && find /usr -name "mysql.h" || echo "MySQL header file not found"
-
-
 # 创建构建目录并构建项目
 RUN mkdir -p build && \
     cd build && \
     cmake .. && \
-    make
+    make     
+# 给脚本赋予执行权限
+RUN chmod +x /app/start.sh && \
+    /app/start.sh
 
-# 暴露 Web 服务的端口（修改为你的服务实际端口）
+# 暴露 Web 服务的端口和 MySQL 的默认端口
 EXPOSE 8080
+EXPOSE 3306
 
-# 设置容器启动时执行的命令,注意这里是不受之前的cd build影响的,还会是在/app的目录
-# CMD ["./main"]
+# 启动 MySQL 服务和 Web 服务
+# CMD service mysql start && \
+#     sleep 10 && \
+#     /app/build/main

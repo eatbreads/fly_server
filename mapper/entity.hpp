@@ -22,7 +22,7 @@ struct Class {
 };
 
 ResultMap(
-        EntityMap(Class),
+        EntityMap(Class), 
         PropertyMap(classId, ColumnType::Id),
         PropertyMap(className),
         PropertyMap(schoolId)

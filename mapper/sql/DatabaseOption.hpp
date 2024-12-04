@@ -12,6 +12,7 @@
  */
 struct DatabaseOption 
 {
+    //std::string host = "127.0.0.1";//数据库ip地址
     std::string host = "127.0.0.1";//数据库ip地址
     int port = 3306;//端口号
     std::string username = "root";//用户名
@@ -23,3 +24,4 @@ struct DatabaseOption
 };
 
 #endif //MAPPER_DATABASEOPTION_HPP
+ 
