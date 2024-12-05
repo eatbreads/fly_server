@@ -16,11 +16,9 @@ using json = nlohmann::json;
 // 用户注册接口
 void handle_register(const Request& req, Response& res) {
     json responseJson;
-
     try {
         // 解析 JSON 请求体
         json requestJson = json::parse(req.body);
-
         // 检查必要字段
         if (!requestJson.contains("username") || !requestJson.contains("password") ||
             !requestJson.contains("email") || !requestJson.contains("phone") ||
@@ -31,10 +29,8 @@ void handle_register(const Request& req, Response& res) {
             res.set_content(responseJson.dump(), "application/json");
             return;
         }
-
         string username = requestJson["username"];
-        string email = requestJson["email"];
-
+        string email = requestJson["email"]; 
         // 检查邮箱是否已存在
         Mapper<User> userMapper;
         Example<User> example;
@@ -48,7 +44,6 @@ void handle_register(const Request& req, Response& res) {
             res.set_content(responseJson.dump(), "application/json");
             return;
         }
-
         // 创建新用户
         User newUser;
         newUser.username = username;
@@ -59,7 +54,6 @@ void handle_register(const Request& req, Response& res) {
         newUser.gender = requestJson["gender"];
         newUser.idNumber = requestJson["idNumber"];
         newUser.userLevel = requestJson["userLevel"];
-
         // 插入用户
         int userId = userMapper.insert(newUser);
         if (userId > 0) {
